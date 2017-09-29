@@ -3,33 +3,28 @@ View(loan)
 
 #Data cleaning
 class(loan)
-sapply(loan,class) #datat types of all variables
+sapply(loan,class) #data  types of all variables
 class(loan$SeriousDlqin2yrs)
 #Modelling type of response variable "SeriousDlqin2yrs" to Nominal from   Continuous 
 loan$SeriousDlqin2yrs=as.logical(loan$SeriousDlqin2yrs) 
-
 length(loan$RevolvingUtilizationOfUnsecuredLines)
 gru=loan$RevolvingUtilizationOfUnsecuredLines[loan$RevolvingUtilizationOfUnsecuredLines>1]
 n=length(gru)
 #2.	To fix the inconsistencies in variable Revolving Utilization Of Unsecured Lines, we excluded all rows where this variable's value is greater than 1.
 loan$RevolvingUtilizationOfUnsecuredLines=replace(loan$RevolvingUtilizationOfUnsecuredLines,gru,1)
-#imputing monthly income with median value
 
+#imputing monthly income with median value
 loan$MonthlyIncome=replace(loan$MonthlyIncome,is.na(loan$MonthlyIncome)==TRUE,5400)
 
 #limiting outliers in debt ration to 295
 loan$DebtRatio=replace(loan$DebtRatio,loan$DebtRatio>295,295)
-
 cor(loan)
-
-
 attach(loan)
+
 #reducing dimensions
 
 install.packages("caret")
-
 library("caret")
-
 trans = preProcess(loan[,c(5,9,11)], 
                    method=c("BoxCox", "center", 
                             "scale", "pca"))
@@ -43,6 +38,7 @@ NewLoan=loan[-c(5,9,11)]
 NewLoan$PC1<-PC$PC1
 NewLoan$PC2<-PC$PC2
 NewLoan
+
 #NewLoan <-cbind(loan$X,loan$SeriousDlqin2yrs,loan$RevolvingUtilizationOfUnsecuredLines,loan$age,loan$DebtRatio,loan$MonthlyIncome
 #           ,loan$NumberOfOpenCreditLinesAndLoans,loan$NumberRealEstateLoansOrLines,loan$NumberOfDependents,PC$PC1,PC$PC2)
 #View(NewLoan)
