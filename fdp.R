@@ -1,19 +1,24 @@
-loan <- read.csv("C:/Users/yo/Documents/BAPM/SEM1/PDM/Kaggle/cs-training.csv")
+#Environmnet Setup 
 View(loan)
 require(foreign)
 require(nnet)
 require(ggplot2)
 require(reshape2)
 
+#Read Data
+loan <- read.csv("C:/Users/yo/Documents/BAPM/SEM1/PDM/Kaggle/cs-training.csv")
+
 #Data cleaning
 class(loan)
 sapply(loan,class) #data  types of all variables
 class(loan$SeriousDlqin2yrs)
+
 #Modelling type of response variable "SeriousDlqin2yrs" to Nominal from   Continuous 
 loan$SeriousDlqin2yrs=as.logical(loan$SeriousDlqin2yrs) 
 length(loan$RevolvingUtilizationOfUnsecuredLines)
 gru=loan$RevolvingUtilizationOfUnsecuredLines[loan$RevolvingUtilizationOfUnsecuredLines>1]
 n=length(gru)
+
 #2.	To fix the inconsistencies in variable Revolving Utilization Of Unsecured Lines, we excluded all rows where this variable's value is greater than 1.
 loan$RevolvingUtilizationOfUnsecuredLines<-replace(loan$RevolvingUtilizationOfUnsecuredLines,gru,1)
 
@@ -43,9 +48,7 @@ NewLoan$PC1<-PC$PC1
 NewLoan$PC2<-PC$PC2
 NewLoan
 
-#NewLoan <-cbind(loan$X,loan$SeriousDlqin2yrs,loan$RevolvingUtilizationOfUnsecuredLines,loan$age,loan$DebtRatio,loan$MonthlyIncome
-#           ,loan$NumberOfOpenCreditLinesAndLoans,loan$NumberRealEstateLoansOrLines,loan$NumberOfDependents,PC$PC1,PC$PC2)
-#View(NewLoan)
+
 #Modeling techniques
 #1.Nominal logistic
 reg1=lm(SeriousDlqin2yrs~.,data=NewLoan)
@@ -63,8 +66,8 @@ nrow(logisticprediction)
 (length(which(is.na(SeriousDlqin2yrs)))) 
 ftable(SeriousDlqin2yrs,logisticprediction)
 ftable(logisticprediction)
-#2.Bootstrap Forest
 
+#2.Bootstrap Forest
 library(boot)
 # function to obtain R-Squared from the data 
 rsq <- function(SeriousDlqin2yrs~., NewLoan, indices) {
@@ -88,11 +91,9 @@ plot(results,NewLoan[3]) # disp
 #3. Decision Tree
 # Regression Tree Example
 library(rpart)
-
 # grow tree 
 fit <- rpart(SeriousDlqin2yrs~., 
    method="class", data=NewLoan)
-
 printcp(fit) # display the results 
 plotcp(fit) # visualize cross-validation results 
 summary(fit) # detailed summary of splits
@@ -121,30 +122,24 @@ post(pfit, file = "c:/ptree.ps",
 
 #4. Boosted Tree
 require(gbm)
-
 #separating training and test data
 train=sample(1:506,size=374)
 Boston.boost=gbm(SeriousDlqin2yrs~. ,data = NewLoan[train,],distribution = "gaussian",n.trees = 10000,
                   shrinkage = 0.01, interaction.depth = 4)
 Boston.boost
-
 summary(Boston.boost) #Summary gives a table of Variable Importance and
 #Plot of Response variable with lstat variable
 plot(Boston.boost,i="lstat") 
 #Inverse relation with lstat variable
-
 plot(Boston.boost,i="rm") 
 #as the average number of rooms increases the the price increases
 n.trees = seq(from=100 ,to=10000, by=100) #no of trees-a vector of 100 values 
-
 #Generating a Prediction matrix for each Tree
 predmatrix<-predict(Boston.boost,Boston[-train,],n.trees = n.trees)
 dim(predmatrix) #dimentions of the Prediction Matrix
-
 #Calculating The Mean squared Test Error
 test.error<-with(Boston[-train,],apply( (predmatrix-medv)^2,2,mean))
 head(test.error) #contains the Mean squared test error for each of the 100 trees averaged
-
 
 #5.Neural Net
 set.seed(500)
@@ -158,9 +153,7 @@ pr.lm <- predict(lm.fit,test)
 MSE.lm <- sum((pr.lm - test$medv)^2)/nrow(test)
 maxs <- apply(Newloan, 2, max) 
 mins <- apply(Newloan, 2, min)
-
 scaled <- as.data.frame(scale(Newloan, center = mins, scale = maxs - mins))
-
 train_ <- scaled[3,]
 test_ <- scaled[-3,]
 library(neuralnet)
@@ -175,6 +168,7 @@ test.r <- (test_$medv)*(max(data$medv)-min(data$medv))+min(data$medv)
 
 MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(test_)
 print(paste(MSE.lm,MSE.nn))
+
       
 
 
